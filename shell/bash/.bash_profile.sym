@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# .bash_profile is the user-specific initialization file for bash, and is read
+# by both login and interactive shells, unlike .bashrc.
+
+# Find the repo by following this file's own symlink back to it, so the
+# checkout can live anywhere rather than only at a fixed path.
+if [ -z "${DEVUP:-}" ]; then
+  __df_link="$(readlink "$HOME/.bash_profile" 2>/dev/null)"
+  [ -n "$__df_link" ] || __df_link="$HOME/devup/shell/bash/.bash_profile.sym"
+  DEVUP="$(cd "$(dirname "$__df_link")/../.." && pwd)"
+  unset __df_link
+fi
+export DEVUP
+
+source "$DEVUP/shell/common.sh"
+source "$DEVUP/shell/bash/functions/cecho"
+source "$DEVUP/shell/bash/functions/chevrons"
+source "$DEVUP/shell/bash/functions/git_info"
+
+## prompt
+
+PROMPT_DIRTRIM=2
+
+export PS1='$(cecho "\w" cyan) $(git_info)$(chevrons) '

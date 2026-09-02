@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+# shellcheck shell=bash disable=SC2016
+
+# .zprofile is the user-specific initialization file for zsh, and is read
+# by both login and interactive shells, unlike .zshrc.
+
+# Find the repo by following this file's own symlink back to it, so the
+# checkout can live anywhere rather than only at a fixed path.
+if [ -z "${DEVUP:-}" ]; then
+  __df_link="$(readlink "$HOME/.zprofile" 2>/dev/null)"
+  [ -n "$__df_link" ] || __df_link="$HOME/devup/shell/zsh/.zprofile.sym"
+  DEVUP="$(cd "$(dirname "$__df_link")/../.." && pwd)"
+  unset __df_link
+fi
+export DEVUP
+
+source "$DEVUP/shell/common.sh"
+source "$DEVUP/shell/zsh/keys.sh"
+
+fpath+="$DEVUP/shell/zsh/functions"
+
+autoload -Uz compinit promptinit chevrons git_info truncated_path
+compinit -i
+promptinit
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+## prompt
+
+setopt prompt_subst
+
+export PS1; PS1='$(truncated_path) $(chevrons) '
+export RPROMPT; RPROMPT='$(git_info)'

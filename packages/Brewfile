@@ -1,0 +1,40 @@
+# Command line packages installed on macOS by ./setup.sh.
+#
+# Always installed, including on remote servers, so keep this file headless. GUI applications belong in Brewfile.full.
+#
+# Add a line, re-run ./setup.sh, and only the new package is installed.
+# Full syntax: https://github.com/Homebrew/homebrew-bundle
+
+## Required by the config in this repo
+
+brew "git"          # git/.gitconfig.sym
+brew "vim"          # core.editor
+# Only when the machine has no gpg already. A GPG Suite install provides
+# /usr/local/bin/gpg, and Homebrew's gnupg cannot link over it — installing
+# both leaves a conflict that fails on every run.
+brew "gnupg" unless system("command -v gpg > /dev/null 2>&1")  # commit.gpgsign
+brew "shellcheck"   # shell/.shellcheckrc.sym
+
+## Version manager for ruby, python and node — see shell/common.sh
+
+brew "mise"
+
+## General command line
+
+brew "curl"
+brew "wget"
+brew "jq"
+brew "ripgrep"
+brew "fd"
+brew "fzf"
+brew "tree"
+brew "htop"
+brew "coreutils"
+
+## Secrets — see shell/env.sh
+
+cask "1password-cli"
+
+## Claude Code
+
+cask "claude-code"

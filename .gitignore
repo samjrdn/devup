@@ -1,0 +1,29 @@
+# Secrets never belong in this repo.
+#
+# The supported home for credentials is ~/.config/devup/env.d/*.env, which
+# lives outside the checkout entirely and so cannot be committed by accident.
+# The patterns below are a second line of defence, for anything dropped in
+# here out of habit.
+
+*.env
+.env
+.env.*
+shell/private
+shell/private.sh
+shell/local.sh
+secrets.env
+secrets.json
+secrets.yml
+secrets.yaml
+*.secret
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Work-specific shell config, sourced by shell/common.sh if present.
+shell/shopify.sh
+
+# Superseded by ~/.gitconfig.local and ~/.gitconfig.work, which live in $HOME.
+git/id
+git/shopify

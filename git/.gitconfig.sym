@@ -1,0 +1,58 @@
+[core]
+  editor = vim
+  autocrlf = input
+  commitGraph = true
+  excludesfile = ~/.gitignore_global
+
+[init]
+  defaultBranch = main
+
+[alias]
+  default-branch = !git symbolic-ref refs/remotes/origin/HEAD | cut -f4 -d/
+  start          = !git checkout $(git default-branch) && git pull && git clean -fd
+  a = add
+  b = branch
+  c = commit
+  co = checkout
+  d = diff
+  l = log --name-only --oneline
+  r = branch --sort=committerdate
+  s = status
+  shove = push --force-with-lease
+
+[branch]
+  sort = -committerdate
+
+[fetch]
+  prune = true
+
+[pull]
+  rebase = false
+
+[rebase]
+  autoStash = true
+
+[diff]
+  algorithm = patience
+
+[gc]
+  writeCommitGraph = true
+
+[protocol]
+  version = 2
+
+[gpg]
+  program = gpg
+
+[commit]
+  gpgsign = true
+
+# Identity and signing key, which differ per machine and are never committed.
+# setup.sh creates this file, carrying over any identity the machine already
+# had. Included last so it overrides anything above.
+[include]
+  path = ~/.gitconfig.local
+
+# Extra config for repositories under a directory named "shopify".
+[includeIf "gitdir/i:**/shopify/**"]
+  path = ~/.gitconfig.work

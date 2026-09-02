@@ -1,0 +1,10 @@
+# GUI applications for macOS, installed only with: ./setup.sh --full
+#
+# Skipped by a default run, so a remote box never pulls these. Add casks here
+# rather than in Brewfile.
+
+# cask "visual-studio-code"
+# cask "firefox"
+# cask "1password"
+# cask "iterm2"
+# cask "docker"

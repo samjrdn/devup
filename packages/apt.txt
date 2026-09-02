@@ -1,0 +1,31 @@
+# Command line packages installed on Debian-based Linux by ./setup.sh.
+#
+# Always installed, including on remote servers, so keep this file headless. Desktop packages belong in apt.full.txt.
+#
+# One package per line; blank lines and # comments are ignored.
+# Add a line, re-run ./setup.sh, and only the new package is installed.
+
+## Required by the config in this repo
+
+git             # git/.gitconfig.sym
+vim             # core.editor
+gnupg           # commit.gpgsign
+openssh-client  # ./setup.sh --ssh, and cloning over ssh
+shellcheck      # shell/.shellcheckrc.sym
+
+## General command line
+
+build-essential
+curl
+wget
+jq
+ripgrep
+fd-find
+fzf
+tree
+htop
+xclip           # pbcopy/pbpaste aliases in shell/os/linux.sh; harmless headless
+
+## mise is installed by setup.sh from https://mise.run, since apt has no
+## package for it. 1Password CLI likewise:
+##   https://developer.1password.com/docs/cli/get-started
