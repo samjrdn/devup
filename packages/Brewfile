@@ -9,10 +9,13 @@
 
 brew "git"          # git/.gitconfig.sym
 brew "vim"          # core.editor
-# Only when the machine has no gpg already. A GPG Suite install provides
-# /usr/local/bin/gpg, and Homebrew's gnupg cannot link over it — installing
-# both leaves a conflict that fails on every run.
-brew "gnupg" unless system("command -v gpg > /dev/null 2>&1")  # commit.gpgsign
+# gnupg is deliberately NOT listed here. commit.gpgsign needs a gpg, but
+# Homebrew's gnupg cannot link over a GPG Suite install, which owns
+# /usr/local/bin/gpg — listing it makes `brew bundle` fail on every run for
+# anyone who has GPG Suite. setup.sh checks for a working gpg instead and
+# tells you what to install. Pick one:
+#   brew install gnupg          (if you have no gpg at all)
+#   https://gpgtools.org        (GPG Suite, with a GUI keychain)
 brew "shellcheck"   # shell/.shellcheckrc.sym
 
 ## Version manager for ruby, python and node — see shell/common.sh

@@ -9,6 +9,8 @@
 # Both paths only touch what is missing, so adding a line to a manifest and
 # re-running installs just that one package.
 
+PACKAGE_FAILURES=0
+
 BREW_INSTALL_URL='https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh'
 MISE_INSTALL_URL='https://mise.run'
 
@@ -76,7 +78,12 @@ install_brew_packages() {
   local brewfile
   for brewfile in $(manifests Brewfile Brewfile.full); do
     step "Installing packages from packages/$(basename "$brewfile")"
-    run brew bundle install --no-upgrade --file "$brewfile"
+    # A single broken formula should not stop the rest of the setup, so this
+    # is reported rather than fatal. Everything else still gets configured.
+    if ! run brew bundle install --no-upgrade --file "$brewfile"; then
+      warn "some packages in $(basename "$brewfile") failed; continuing"
+      PACKAGE_FAILURES=$((PACKAGE_FAILURES + 1))
+    fi
   done
 }
 
@@ -155,19 +162,23 @@ install_apt_list() {
 
   # Word splitting is what we want here: $missing is a list of package names.
   # shellcheck disable=SC2086
-  run as_root apt-get install -y $missing
-  changed "installed:$missing"
+  if run as_root apt-get install -y $missing; then
+    changed "installed:$missing"
+  else
+    warn "some packages in $(basename "$list") failed; continuing"
+    PACKAGE_FAILURES=$((PACKAGE_FAILURES + 1))
+  fi
 }
 
-# Install the tool versions named in ~/.mise.toml. Idempotent: mise skips any
-# version already present. The first run on a new machine is slow, because it
-# is building ruby and python.
+# Install whatever versions the machine's own mise config names. Idempotent:
+# mise skips any version already present. The first run on a new machine is
+# slow, because it is building ruby and python.
 install_mise_tools() {
   # Tool versions come from the machine's own mise config, not from this repo.
   [ -f "$HOME/.config/mise/config.toml" ] || [ -f "$HOME/.mise.toml" ] || return 0
   have mise || [ -x "$HOME/.local/bin/mise" ] || return 0
 
-  step "Installing tool versions from ~/.mise.toml"
+  step "Installing tool versions from your mise config"
   run "${MISE:-$(command -v mise || echo "$HOME/.local/bin/mise")}" install
 }
 

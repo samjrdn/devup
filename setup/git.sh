@@ -68,7 +68,8 @@ check_git_signing() {
   [ "$signing" = "true" ] || return 0
 
   if ! have gpg; then
-    warn "commit.gpgsign is on but gpg is not installed; commits will fail"
+    warn "commit.gpgsign is on but no gpg is installed; commits will fail."
+    warn "install one with 'brew install gnupg', or GPG Suite from gpgtools.org"
     return 0
   fi
 
