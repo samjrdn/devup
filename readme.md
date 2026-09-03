@@ -214,6 +214,21 @@ Commits are signed with an **SSH key**, not GPG. It behaves identically on
 macOS and Linux, needs no gpg install, and works with
 [1Password's SSH agent](https://www.1password.dev/ssh/git-commit-signing).
 
+### On a new machine
+
+```shell
+./setup.sh --full --ssh
+```
+
+`--ssh` generates the key first, then signing picks it up in the same run, so
+one command leaves you able to sign. Without `--ssh`, an existing
+`~/.ssh/id_ed25519` is used; if there is no key at all, signing is skipped
+with a warning rather than half-configured.
+
+The one manual step is GitHub: the key has to be registered there as a
+**signing** key before your commits show as verified. `--ssh` offers to do it,
+which needs `gh auth refresh -h github.com -s admin:ssh_signing_key` first.
+
 Signing is set up only by `./setup.sh --full`, because a remote server has no
 business holding a signing key. The tracked config sets just `gpg.format`;
 whether to sign and which key to use are written to `~/.gitconfig.local`, so a

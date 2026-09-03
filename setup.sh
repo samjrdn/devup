@@ -11,6 +11,8 @@ DEVUP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export DEVUP
 
 DRY_RUN=false
+# Used by confirm() in setup/lib.sh.
+# shellcheck disable=SC2034
 ASSUME_YES=false
 DO_LINKS=true
 DO_PACKAGES=true
@@ -89,6 +91,13 @@ main() {
     skipped "--no-packages"
   fi
 
+  # SSH access comes before signing: --ssh creates the key that signing then
+  # configures. The other way round, a brand new machine finishes with signing
+  # unconfigured and needs a second run.
+  if [ "$DO_SSH" = true ]; then
+    setup_ssh_access
+  fi
+
   if [ "$DO_LINKS" = true ]; then
     seed_git_identity
     seed_local_shellrc
@@ -103,10 +112,6 @@ main() {
   else
     step "Config files"
     skipped "--only-packages"
-  fi
-
-  if [ "$DO_SSH" = true ]; then
-    setup_ssh_access
   fi
 
   step "Done"
