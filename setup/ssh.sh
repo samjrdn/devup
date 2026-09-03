@@ -38,14 +38,25 @@ generate_ssh_key() {
     return 0
   fi
 
-  printf '    %sGenerating an ed25519 key for %s.%s\n' \
-    "$C_DIM" "$(hostname -s 2>/dev/null || hostname)" "$C_RESET"
-  printf '    %sChoose a passphrase. On a shared or remote machine this is the%s\n' \
-    "$C_DIM" "$C_RESET"
-  printf '    %sonly thing protecting the key if the disk is read.%s\n' "$C_DIM" "$C_RESET"
+  local host
+  host="$(hostname -s 2>/dev/null || hostname)"
 
-  ssh-keygen -t ed25519 -f "$SSH_KEY" \
-    -C "$(whoami)@$(hostname -s 2>/dev/null || hostname)"
+  printf '    %sGenerating an ed25519 key for %s.%s\n' "$C_DIM" "$host" "$C_RESET"
+
+  if [ -t 0 ]; then
+    printf '    %sChoose a passphrase. On a shared or remote machine this is the%s\n' \
+      "$C_DIM" "$C_RESET"
+    printf '    %sonly thing protecting the key if the disk is read.%s\n' "$C_DIM" "$C_RESET"
+    ssh-keygen -t ed25519 -f "$SSH_KEY" -C "$(whoami)@$host"
+  else
+    # There is no terminal to prompt on — this is how `curl ... | sh` runs,
+    # because stdin is the script itself. ssh-keygen would read EOF and make
+    # an unencrypted key anyway; do it deliberately and say so, rather than
+    # printing "choose a passphrase" and quietly not asking.
+    ssh-keygen -q -t ed25519 -f "$SSH_KEY" -N '' -C "$(whoami)@$host"
+    warn "no terminal to ask for a passphrase, so this key is UNENCRYPTED."
+    warn "add one with: ssh-keygen -p -f $SSH_KEY"
+  fi
 
   chmod 600 "$SSH_KEY"
   chmod 644 "$SSH_KEY.pub"
@@ -134,11 +145,17 @@ verify_github_access() {
   [ "$DRY_RUN" = true ] && return 0
 
   # GitHub always exits 1 on this, even on success; the message is the signal.
-  local out
+  local out reason
   out="$(ssh -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)"
   case "$out" in
-    *"successfully authenticated"*) ok "github.com authenticates this machine" ;;
-    *) warn "could not authenticate to github.com yet: ${out%%$'\n'*}" ;;
+    *"successfully authenticated"*)
+      ok "github.com authenticates this machine"
+      ;;
+    *)
+      # Drop ssh's own notices so the reported reason is the actual failure.
+      reason="$(printf '%s\n' "$out" | grep -v '^Warning: Permanently added' | head -1)"
+      warn "could not authenticate to github.com yet: $reason"
+      ;;
   esac
 }
 
