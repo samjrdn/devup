@@ -16,14 +16,27 @@ DRY_RUN=false
 ASSUME_YES=false
 DO_LINKS=true
 DO_PACKAGES=true
+DO_INTERACTIVE=false
 FULL=false
-DO_SSH=false
+
+# Left unset (not false) so setup/features.sh's resolve_features can tell
+# "no flag touched this" apart from "a flag explicitly turned it off", and
+# fill in the right profile default only in the first case.
+DO_PACKAGES_CLI=""
+DO_PACKAGES_GUI=""
+DO_SHELL_SWITCH=""
+DO_SSH=""
+DO_SIGNING=""
 
 usage() {
   cat <<'USAGE'
 Usage: ./setup.sh [options]
 
-  --full          Also install GUI applications (see below)
+  --interactive, -i  Review and toggle what gets set up before running it
+  --full          Also install GUI applications, switch to zsh, and sign
+                  commits (see below)
+  --shell         Make zsh the default shell
+  --no-shell      Do not change the default shell
   --ssh           Set up an SSH key for cloning private repositories
   --no-packages   Only link config files; skip brew/apt
   --only-packages Only install packages; leave config files alone
@@ -32,8 +45,12 @@ Usage: ./setup.sh [options]
   --help, -h      Show this message
 
 By default only command line tools and preferences are installed, which is
-what a remote server wants. --full adds everything in packages/*.full.*, for
-a desktop development machine.
+what a remote server wants. --full turns on everything that makes sense for
+a desktop development machine. --interactive shows the same choices as a
+checklist you can toggle before anything runs — it needs a terminal, so it
+only works from a cloned checkout, not the piped bootstrap one-liner.
+Unchecking something only skips it; it never undoes what an earlier run
+already set up.
 
 --ssh generates an SSH key on this machine and offers to add it to GitHub, so
 the machine can clone private repositories. The key never leaves the machine.
@@ -45,7 +62,10 @@ USAGE
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    -i|--interactive) DO_INTERACTIVE=true ;;
     --full)          FULL=true ;;
+    --shell)         DO_SHELL_SWITCH=true ;;
+    --no-shell)      DO_SHELL_SWITCH=false ;;
     --ssh)           DO_SSH=true ;;
     --no-packages)   DO_PACKAGES=false ;;
     --only-packages) DO_LINKS=false ;;
@@ -59,23 +79,31 @@ done
 
 # shellcheck source=setup/lib.sh
 source "$DEVUP/setup/lib.sh"
+source "$DEVUP/setup/features.sh"
 source "$DEVUP/setup/symlinks.sh"
 source "$DEVUP/setup/packages.sh"
 source "$DEVUP/setup/secrets.sh"
 source "$DEVUP/setup/git.sh"
 source "$DEVUP/setup/ssh.sh"
+source "$DEVUP/setup/shell.sh"
 
 OS="$(detect_os)"
 ARCH="$(detect_arch)"
+resolve_features
 
 main() {
   step "devup"
   ok "repo      $DEVUP"
   ok "platform  $OS ($ARCH)"
-  if [ "$FULL" = true ]; then
-    ok "packages  command line + GUI applications (--full)"
+
+  if [ "$DO_INTERACTIVE" = true ]; then
+    interactive_checklist
+  fi
+
+  if [ "$DO_PACKAGES_GUI" = true ]; then
+    ok "packages  command line + GUI applications"
   else
-    ok "packages  command line only (--full adds GUI applications)"
+    ok "packages  command line only"
   fi
   if [ "$DRY_RUN" = true ]; then warn "dry run: nothing will be changed"; fi
 
@@ -105,6 +133,11 @@ main() {
     prune_stale_links
     link_renamed_binaries
     seed_env_dir
+
+    if [ "$DO_SHELL_SWITCH" = true ]; then
+      switch_default_shell
+    fi
+
     setup_commit_signing
 
     step "Checks"
@@ -116,7 +149,17 @@ main() {
 
   step "Done"
   print_summary
-  printf '    Open a new shell, or run: %ssource ~/.zprofile%s\n' "$C_DIM" "$C_RESET"
+
+  if [ "$FULL" != true ] && [ "$DO_INTERACTIVE" != true ]; then
+    printf '\n'
+    printf '    %sThis set up command-line tools and preferences only.%s\n' "$C_DIM" "$C_RESET"
+    printf '    For GUI applications, zsh, and commit signing:\n'
+    printf '      %s%s/setup.sh --full%s\n' "$C_DIM" "$(tilde "$DEVUP")" "$C_RESET"
+    printf '    To choose exactly what gets set up:\n'
+    printf '      %s%s/setup.sh --interactive%s\n' "$C_DIM" "$(tilde "$DEVUP")" "$C_RESET"
+  fi
+
+  printf '\n    Open a new shell, or run: %ssource ~/.zprofile%s\n' "$C_DIM" "$C_RESET"
 }
 
 main

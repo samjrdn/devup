@@ -34,9 +34,11 @@ manifests() {
   local base="$DEVUP/packages/$1" full="$DEVUP/packages/$2"
   local arch="$DEVUP/packages/$1.$ARCH"
 
-  [ -f "$base" ] && printf '%s\n' "$base"
-  [ -f "$arch" ] && printf '%s\n' "$arch"
-  if [ "$FULL" = true ] && [ -f "$full" ]; then
+  if [ "$DO_PACKAGES_CLI" = true ]; then
+    [ -f "$base" ] && printf '%s\n' "$base"
+    [ -f "$arch" ] && printf '%s\n' "$arch"
+  fi
+  if [ "$DO_PACKAGES_GUI" = true ] && [ -f "$full" ]; then
     printf '%s\n' "$full"
   fi
   return 0

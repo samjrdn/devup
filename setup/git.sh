@@ -142,11 +142,11 @@ write_allowed_signers() {
 setup_commit_signing() {
   step "Configuring commit signing"
 
-  # A remote server has no business holding a signing key, so this only runs
-  # with --full. Without it commit.gpgsign is never switched on, and commits
-  # there simply go unsigned rather than failing.
-  if [ "$FULL" != true ]; then
-    skipped "commit signing (--full sets it up on a workstation)"
+  # A remote server has no business holding a signing key by default. Without
+  # this, commit.gpgsign is never switched on, and commits there simply go
+  # unsigned rather than failing.
+  if [ "$DO_SIGNING" != true ]; then
+    skipped "commit signing (enable with --full or --interactive)"
     return 0
   fi
 
@@ -168,7 +168,7 @@ setup_commit_signing() {
   local current
   current="$(git config --global --includes user.signingkey 2>/dev/null || true)"
   case "$current" in
-    ssh-*|sk-ssh-*) ;;
+    ssh-*|sk-ssh-*|/*) ;;  # already an SSH key: a literal key, or a path to one
     "") ;;
     *) warn "replacing the old GPG signing key $current with an SSH key" ;;
   esac

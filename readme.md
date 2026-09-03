@@ -45,7 +45,8 @@ or a config file applies just that change. Run it as often as you like.
 
 ```shell
 ./setup.sh                 # command line tools and preferences
-./setup.sh --full          # the above, plus GUI applications
+./setup.sh --full          # the above, plus GUI apps, zsh, and commit signing
+./setup.sh --interactive   # choose exactly what runs, from a checklist
 ./setup.sh --ssh           # add an SSH key for private repos
 ./setup.sh --dry-run       # show what would change, change nothing
 ./setup.sh --no-packages   # only link config files
@@ -53,8 +54,19 @@ or a config file applies just that change. Run it as often as you like.
 ./setup.sh --help
 ```
 
-The default run installs nothing graphical, so it is safe on a headless box.
-GUI applications are opt-in via `--full`.
+The default run installs nothing graphical and does not touch your default
+shell, so it is safe on a headless box.
+
+`--full` is not a separate code path — it is the same features `--interactive`
+shows you, applied with their workstation defaults instead of their server
+defaults, without stopping to ask. A feature can default to off even under
+`--full`: generating an SSH key does, deliberately, since it touches your
+GitHub account. Turning a feature off, in either mode, only means it is not
+run this time — nothing here ever uninstalls or reverts what an earlier run
+already set up. `--interactive` needs a real terminal, so it only works from a
+cloned checkout, not the piped bootstrap one-liner; that one-liner installs
+the server defaults and tells you the commands for `--full` and
+`--interactive` at the end.
 
 ## What it does
 
@@ -172,6 +184,19 @@ a build for that architecture.
 Debian renames a couple of binaries — `fd` is `fdfind`, `bat` is `batcat`.
 `setup.sh` puts shims in `~/.local/bin` so the usual names work in scripts,
 not just interactively as a shell alias would.
+
+## Default shell
+
+`--full` and `--interactive` can switch the account's default shell to zsh.
+On macOS that is usually already the case; on Debian and Raspberry Pi OS the
+default is bash, so the zsh config this repo links otherwise sits unused.
+Installs zsh first if it is missing, and skips the switch entirely if zsh is
+already the default — so re-running never asks twice.
+
+Changing a login shell needs to authenticate, which needs a real terminal:
+piping the bootstrap into a shell has none, so in that case the switch is
+skipped with a warning and the command to run yourself, rather than hanging
+on a password prompt that can never arrive.
 
 ## Intel Macs
 
