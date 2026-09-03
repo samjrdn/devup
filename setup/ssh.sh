@@ -101,15 +101,23 @@ register_ssh_key() {
       "$C_DIM" "$title" "$C_RESET"
     printf '    %s\n' "$(cat "$pub")"
     if confirm "Add it to GitHub now?"; then
-      run gh ssh-key add "$pub" --title "$title"
-      changed "added public key to GitHub"
+      if run gh ssh-key add "$pub" --title "$title"; then
+        changed "added public key to GitHub"
+      else
+        warn "could not add the key; add it at https://github.com/settings/ssh/new"
+      fi
 
-      # GitHub tracks authentication and signing keys separately. The same key
-      # registered for auth will NOT mark your commits verified; it has to be
-      # added a second time as a signing key.
+      # GitHub tracks authentication and signing keys separately. A key
+      # registered for auth will NOT mark commits verified; it must be added
+      # again as a signing key, which needs an extra gh scope.
       if confirm "Also register it as a signing key, so commits show verified?"; then
-        run gh ssh-key add "$pub" --title "$title (signing)" --type signing
-        changed "registered public key for signing"
+        if run gh ssh-key add "$pub" --title "$title (signing)" --type signing; then
+          changed "registered public key for signing"
+        else
+          warn "gh lacks the admin:ssh_signing_key scope. Grant it with:"
+          warn "  gh auth refresh -h github.com -s admin:ssh_signing_key"
+          warn "or add it as type Signing Key at https://github.com/settings/ssh/new"
+        fi
       fi
     else
       skipped "not added to GitHub"
