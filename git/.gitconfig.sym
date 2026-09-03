@@ -41,11 +41,18 @@
 [protocol]
   version = 2
 
+# Signing uses an SSH key rather than GPG: same on macOS and Linux, no gpg
+# install needed, and it can be backed by 1Password's SSH agent.
+#
+# Only the format is set here. Whether to actually sign, which key, and the
+# 1Password signer path are all written to ~/.gitconfig.local by
+# `./setup.sh --full`, so a remote server is not left with signing switched
+# on and no key to sign with.
 [gpg]
-  program = gpg
+  format = ssh
 
-[commit]
-  gpgsign = true
+[gpg "ssh"]
+  allowedSignersFile = ~/.config/git/allowed_signers
 
 # Identity and signing key, which differ per machine and are never committed.
 # setup.sh creates this file, carrying over any identity the machine already

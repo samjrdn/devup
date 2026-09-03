@@ -94,6 +94,8 @@ main() {
     link_config
     prune_stale_links
     seed_env_dir
+    setup_commit_signing
+
     step "Checks"
     check_git_signing
   else

@@ -165,9 +165,39 @@ shell/              shared shell config, plus os/ for per-platform bits
 git/ editor/ ruby/  config files, linked into $HOME
 ```
 
-Commit signing is on in [`git/.gitconfig.sym`](git/.gitconfig.sym). `setup.sh`
-warns if the machine has no matching gpg key rather than letting your first
-commit fail.
+## Commit signing
+
+Commits are signed with an **SSH key**, not GPG. It behaves identically on
+macOS and Linux, needs no gpg install, and works with
+[1Password's SSH agent](https://www.1password.dev/ssh/git-commit-signing).
+
+Signing is set up only by `./setup.sh --full`, because a remote server has no
+business holding a signing key. The tracked config sets just `gpg.format`;
+whether to sign and which key to use are written to `~/.gitconfig.local`, so a
+server is never left with signing switched on and no key — its commits simply
+go unsigned instead of failing.
+
+`setup.sh` picks the key in this order, which matters more than it looks:
+
+1. a local private key file (`~/.ssh/id_ed25519`) — referenced **by path**
+2. an already-configured SSH key
+3. whatever the SSH agent is holding
+
+A path signs straight from the file. A literal public key requires the private
+half to be in an agent, so using one for a key that is only on disk fails with
+`Couldn't find key in agent?` on every commit.
+
+If 1Password's SSH agent is running, `gpg.ssh.program` is pointed at
+`op-ssh-sign` automatically. If 1Password is installed but its agent is off,
+signing falls back to `ssh-keygen` rather than being configured into a state
+that cannot sign.
+
+After setup, a throwaway repo is used to make a real signed commit and verify
+it, so a broken configuration is reported rather than discovered later.
+
+**On GitHub**, register the key *twice*: once as an authentication key and
+again as a signing key. They are separate, and an auth key alone will not mark
+your commits verified. `./setup.sh --ssh` offers to do both.
 
 ---
 

@@ -103,6 +103,14 @@ register_ssh_key() {
     if confirm "Add it to GitHub now?"; then
       run gh ssh-key add "$pub" --title "$title"
       changed "added public key to GitHub"
+
+      # GitHub tracks authentication and signing keys separately. The same key
+      # registered for auth will NOT mark your commits verified; it has to be
+      # added a second time as a signing key.
+      if confirm "Also register it as a signing key, so commits show verified?"; then
+        run gh ssh-key add "$pub" --title "$title (signing)" --type signing
+        changed "registered public key for signing"
+      fi
     else
       skipped "not added to GitHub"
     fi
