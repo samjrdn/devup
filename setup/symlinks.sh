@@ -73,7 +73,7 @@ link_config() {
     if [ -L "$dest" ]; then
       current="$(readlink "$dest")"
       if [ "$current" = "$src" ]; then
-        ok "~/${dest##*/}"
+        ok "$(tilde "$dest")"
         continue
       fi
       if [ ! -e "$dest" ]; then
@@ -91,7 +91,7 @@ link_config() {
     fi
 
     run ln -s "$src" "$dest"
-    changed "~/${dest##*/}"
+    changed "$(tilde "$dest")"
   done < <(find "$DEVUP" -name '*.sym*' -not -path '*/.git/*' | sort)
 
   # Linking nothing means the search failed, not that there was nothing to do.
@@ -125,7 +125,7 @@ prune_stale_links() {
     esac
 
     run rm -f "$dest"
-    changed "removed stale ~/${dest##*/} (no longer in the repo)"
+    changed "removed stale $(tilde "$dest") (no longer in the repo)"
   done
 }
 
@@ -135,7 +135,7 @@ seed_local_shellrc() {
   local target="$HOME/.shellrc.local"
 
   if [ -e "$target" ]; then
-    ok "~/.shellrc.local"
+    ok "$(tilde "$target")"
     return
   fi
 
@@ -154,5 +154,36 @@ seed_local_shellrc() {
 
 # eval "$(mise activate zsh)"
 TEMPLATE
-  changed "~/.shellrc.local"
+  changed "$(tilde "$target")"
+}
+
+# Debian ships a few tools under a different binary name to avoid clashing
+# with older packages: fd is fdfind, bat is batcat. Put a shim on PATH so the
+# usual name works in scripts as well as interactively — an alias would only
+# cover the latter.
+link_renamed_binaries() {
+  [ "$OS" = debian ] || return 0
+
+  step "Linking Debian's renamed binaries"
+
+  local bindir="$HOME/.local/bin"
+  local pair name real target
+
+  for pair in fd:fdfind bat:batcat; do
+    name="${pair%%:*}"
+    real="${pair#*:}"
+
+    have "$name" && { ok "$name"; continue; }
+    have "$real" || continue
+
+    target="$bindir/$name"
+    if [ -L "$target" ] && [ "$(readlink "$target")" = "$(command -v "$real")" ]; then
+      ok "$(tilde "$target")"
+      continue
+    fi
+
+    run mkdir -p "$bindir"
+    run ln -sf "$(command -v "$real")" "$target"
+    changed "$(tilde "$target") -> $real"
+  done
 }

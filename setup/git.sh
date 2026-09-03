@@ -17,13 +17,13 @@ seed_git_identity() {
   fi
 
   if [ -e "$target" ]; then
-    ok "~/.gitconfig.local"
+    ok "$(tilde "$target")"
     return 0
   fi
 
   # Read the identity before ~/.gitconfig is replaced by the symlink, so an
   # existing machine keeps working instead of losing its name and key.
-  local name= email= key=
+  local name='' email='' key=''
   if have git; then
     name="$(git config --global --includes user.name || true)"
     email="$(git config --global --includes user.email || true)"
@@ -49,9 +49,9 @@ seed_git_identity() {
   } > "$target"
 
   if [ -n "$name" ] && [ -n "$email" ]; then
-    changed "~/.gitconfig.local (carried over $name <$email>)"
+    changed "$(tilde "$target") (carried over $name <$email>)"
   else
-    changed "~/.gitconfig.local"
+    changed "$(tilde "$target")"
     warn "set your name and email in ~/.gitconfig.local"
   fi
 }
@@ -125,7 +125,7 @@ write_allowed_signers() {
   [ -n "$email" ] && [ -n "$key" ] || return 0
 
   if [ -f "$file" ] && grep -qF "$key" "$file"; then
-    ok "~/.config/git/allowed_signers"
+    ok "$(tilde "$file")"
     return 0
   fi
 
@@ -136,7 +136,7 @@ write_allowed_signers() {
 
   mkdir -p "$(dirname "$file")"
   printf '%s %s\n' "$email" "$key" >> "$file"
-  changed "~/.config/git/allowed_signers"
+  changed "$(tilde "$file")"
 }
 
 setup_commit_signing() {

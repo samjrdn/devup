@@ -59,7 +59,7 @@ configure_ssh_host() {
   local marker="# managed by devup: github.com"
 
   if [ -f "$config" ] && grep -qF "$marker" "$config"; then
-    ok "~/.ssh/config"
+    ok "$(tilde "$config")"
     return 0
   fi
 
@@ -76,7 +76,7 @@ configure_ssh_host() {
     printf '  IdentitiesOnly yes\n'
   } >> "$config"
   chmod 600 "$config"
-  changed "~/.ssh/config"
+  changed "$(tilde "$config")"
 }
 
 # Register the public key with GitHub. This changes the account, so it always

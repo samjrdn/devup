@@ -13,7 +13,7 @@ if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   C_YELLOW=$'\033[33m'
   C_BLUE=$'\033[34m'
 else
-  C_RESET= C_DIM= C_RED= C_GREEN= C_YELLOW= C_BLUE=
+  C_RESET='' C_DIM='' C_RED='' C_GREEN='' C_YELLOW='' C_BLUE=''
 fi
 
 step()    { printf '\n%s==>%s %s\n' "$C_BLUE"   "$C_RESET" "$*"; }
@@ -26,6 +26,15 @@ die()     { printf '    %serror%s    %s\n' "$C_RED"    "$C_RESET" "$*" >&2; exit
 ## environment
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+# Render a path for display with $HOME shown as "~", so the message and the
+# path it describes can never drift apart.
+tilde() {
+  case "$1" in
+    "$HOME"/*) printf '~%s' "${1#"$HOME"}" ;;
+    *)         printf '%s' "$1" ;;
+  esac
+}
 
 # Print the platform we are setting up: macos, debian, linux or unknown.
 detect_os() {

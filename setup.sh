@@ -94,6 +94,7 @@ main() {
     seed_local_shellrc
     link_config
     prune_stale_links
+    link_renamed_binaries
     seed_env_dir
     setup_commit_signing
 

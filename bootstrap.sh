@@ -80,7 +80,7 @@ download_tarball() {
 local_checkout() {
   d=""
   [ -f "$0" ] || return 1
-  d=$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd) || return 1
+  d=$(CDPATH='' cd -- "$(dirname -- "$0")" 2>/dev/null && pwd) || return 1
   [ -x "$d/setup.sh" ] && [ -f "$d/bootstrap.sh" ] || return 1
   printf '%s' "$d"
 }

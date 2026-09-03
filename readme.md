@@ -3,7 +3,8 @@
 Set up a development machine: shell, git, editor, and the command line tools
 that go with them. Clone, run one script, done.
 
-Works on macOS and Debian-based Linux, on a laptop or a remote server.
+Works on macOS and Debian-based Linux — including Ubuntu and Raspberry Pi OS —
+on a laptop, a remote server, or a Pi.
 
 ## Get started
 
@@ -157,6 +158,20 @@ Scope `ForwardAgent` to hosts you trust, never `Host *` — anyone with root on
 the far end can use your agent while you are connected. The
 [1Password SSH agent](https://developer.1password.com/docs/ssh/agent/) works
 with this and asks for approval on each use.
+
+## Raspberry Pi and other ARM machines
+
+Raspberry Pi OS is Debian-based, so it is detected as `debian` and uses
+[`packages/apt.txt`](packages/apt.txt) like any other. Verified on Debian
+arm64 (what Pi OS 64-bit is built on): every package installs, `mise` picks up
+its `linux-arm64` build, and a second run changes nothing.
+
+32-bit Pi OS (`armv7l`) is untested. apt handles it, but `mise` may not publish
+a build for that architecture.
+
+Debian renames a couple of binaries — `fd` is `fdfind`, `bat` is `batcat`.
+`setup.sh` puts shims in `~/.local/bin` so the usual names work in scripts,
+not just interactively as a shell alias would.
 
 ## Intel Macs
 
