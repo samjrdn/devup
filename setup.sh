@@ -115,6 +115,7 @@ main() {
   fi
 
   step "Done"
+  print_summary
   printf '    Open a new shell, or run: %ssource ~/.zprofile%s\n' "$C_DIM" "$C_RESET"
 }
 

@@ -16,12 +16,40 @@ else
   C_RESET='' C_DIM='' C_RED='' C_GREEN='' C_YELLOW='' C_BLUE=''
 fi
 
+# Tallied for the summary printed at the end of the run, so a warning does not
+# depend on being spotted while scrolling past everything that went fine.
+SUMMARY_OK=0
+SUMMARY_CHANGED=0
+SUMMARY_SKIPPED=0
+SUMMARY_WARNINGS=()
+
 step()    { printf '\n%s==>%s %s\n' "$C_BLUE"   "$C_RESET" "$*"; }
-ok()      { printf '    %sok%s       %s\n' "$C_GREEN"  "$C_RESET" "$*"; }
-changed() { printf '    %schanged%s  %s\n' "$C_YELLOW" "$C_RESET" "$*"; }
-skipped() { printf '    %sskip%s     %s\n' "$C_DIM"    "$C_RESET" "$*"; }
-warn()    { printf '    %swarn%s     %s\n' "$C_YELLOW" "$C_RESET" "$*" >&2; }
+ok()      { SUMMARY_OK=$((SUMMARY_OK + 1));           printf '    %sok%s       %s\n' "$C_GREEN"  "$C_RESET" "$*"; }
+changed() { SUMMARY_CHANGED=$((SUMMARY_CHANGED + 1));  printf '    %schanged%s  %s\n' "$C_YELLOW" "$C_RESET" "$*"; }
+skipped() { SUMMARY_SKIPPED=$((SUMMARY_SKIPPED + 1));  printf '    %sskip%s     %s\n' "$C_DIM"    "$C_RESET" "$*"; }
+warn()    { SUMMARY_WARNINGS+=("$*"); printf '    %swarn%s     %s\n' "$C_YELLOW" "$C_RESET" "$*" >&2; }
 die()     { printf '    %serror%s    %s\n' "$C_RED"    "$C_RESET" "$*" >&2; exit 1; }
+
+# Final tally: counts of everything that happened, and every warning restated
+# together so none of them depend on being noticed the first time.
+print_summary() {
+  local counts="$SUMMARY_OK ok, $SUMMARY_CHANGED changed"
+  [ "$SUMMARY_SKIPPED" -gt 0 ] && counts="$counts, $SUMMARY_SKIPPED skipped"
+
+  local n=${#SUMMARY_WARNINGS[@]}
+  if [ "$n" -eq 0 ]; then
+    printf '    %s%s%s\n' "$C_GREEN" "$counts" "$C_RESET"
+    return 0
+  fi
+
+  local plural=""; [ "$n" -ne 1 ] && plural="s"
+  printf '    %s, %s%d warning%s%s\n' "$counts" "$C_YELLOW" "$n" "$plural" "$C_RESET"
+
+  local w
+  for w in "${SUMMARY_WARNINGS[@]}"; do
+    printf '      %s!%s %s\n' "$C_YELLOW" "$C_RESET" "$w"
+  done
+}
 
 ## environment
 
