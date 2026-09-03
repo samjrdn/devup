@@ -70,6 +70,9 @@ missing. `--full` additionally installs
 [`Brewfile.full`](packages/Brewfile.full) / [`apt.full.txt`](packages/apt.full.txt),
 which is where GUI applications go.
 
+On macOS a `Brewfile.<arch>` is layered on top, so an Intel Mac and an Apple
+Silicon Mac can install different sets. See [Intel Macs](#intel-macs).
+
 **Installs mise.** [mise](https://mise.jdx.dev) manages ruby, python and node.
 Which versions is deliberately left to you, in `~/.config/mise/config.toml` —
 that file is per-machine and this repo does not overwrite it. `setup.sh` runs
@@ -154,6 +157,31 @@ Scope `ForwardAgent` to hosts you trust, never `Host *` — anyone with root on
 the far end can use your agent while you are connected. The
 [1Password SSH agent](https://developer.1password.com/docs/ssh/agent/) works
 with this and asks for approval on each use.
+
+## Intel Macs
+
+Homebrew dropped support for macOS on Intel in September 2026. There are no
+x86_64 bottles any more, so anything not already installed is compiled from
+source, which is slow.
+
+`setup.sh` reports the architecture, warns on Intel, and layers a
+`Brewfile.<arch>` on top of the shared one:
+
+| file | installed on |
+| --- | --- |
+| [`Brewfile`](packages/Brewfile) | every Mac — keep this to things that are cheap everywhere |
+| [`Brewfile.arm64`](packages/Brewfile.arm64) | Apple Silicon only |
+| [`Brewfile.x86_64`](packages/Brewfile.x86_64) | Intel only |
+
+`curl` and `wget` sit in `Brewfile.arm64` because they pull in `openssl@3`,
+whose Intel build takes far longer than it is worth. macOS ships its own
+`curl`, so Intel machines use that instead.
+
+**MacPorts is not a way around this**, despite Homebrew suggesting it.
+MacPorts does support macOS Tahoe, but it has the same gap: it publishes
+x86_64 binaries up to darwin_24 and, for darwin_25, arm64 only. Switching
+would trade Homebrew's source builds for MacPorts' source builds and cost you
+a second set of manifests and package names.
 
 ## Layout
 

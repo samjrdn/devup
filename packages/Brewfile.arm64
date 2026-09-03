@@ -1,0 +1,11 @@
+# Extra macOS packages for Apple Silicon only.
+#
+# Homebrew stopped supporting macOS on Intel in September 2026, so x86_64 has
+# no bottles and anything here would be built from source. Packages that are
+# convenient but not worth a long compile go in this file rather than in the
+# shared Brewfile.
+
+# Both pull in openssl@3. macOS already ships curl, so on Intel the system one
+# is used instead and wget is simply not installed.
+brew "curl"
+brew "wget"

@@ -23,9 +23,11 @@ brew "shellcheck"   # shell/.shellcheckrc.sym
 brew "mise"
 
 ## General command line
+##
+## Keep this list to things that are cheap everywhere. curl and wget live in
+## Brewfile.arm64 because they pull in openssl@3, which has no Intel bottle
+## and so is compiled from source on an Intel Mac.
 
-brew "curl"
-brew "wget"
 brew "jq"
 brew "ripgrep"
 brew "fd"

@@ -64,11 +64,12 @@ source "$DEVUP/setup/git.sh"
 source "$DEVUP/setup/ssh.sh"
 
 OS="$(detect_os)"
+ARCH="$(detect_arch)"
 
 main() {
   step "devup"
   ok "repo      $DEVUP"
-  ok "platform  $OS"
+  ok "platform  $OS ($ARCH)"
   if [ "$FULL" = true ]; then
     ok "packages  command line + GUI applications (--full)"
   else

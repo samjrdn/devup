@@ -19,12 +19,23 @@ read_package_list() {
   sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^[[:space:]]*$/d' "$1"
 }
 
-# Echo the manifests to install: the base one always, and the .full one only
-# with --full. Missing files are skipped, so a platform can omit either.
+# Echo the manifests to install, in order:
+#
+#   Brewfile            always
+#   Brewfile.<arch>     matching this CPU only
+#   Brewfile.full       only with --full
+#
+# Missing files are skipped, so a platform can omit any of them. The arch
+# split exists because Homebrew stopped supporting macOS on Intel in
+# September 2026: there are no bottles for x86_64 any more, so anything not
+# already on the system gets compiled from source. Packages worth having only
+# where they are cheap belong in Brewfile.arm64.
 manifests() {
   local base="$DEVUP/packages/$1" full="$DEVUP/packages/$2"
+  local arch="$DEVUP/packages/$1.$ARCH"
 
   [ -f "$base" ] && printf '%s\n' "$base"
+  [ -f "$arch" ] && printf '%s\n' "$arch"
   if [ "$FULL" = true ] && [ -f "$full" ]; then
     printf '%s\n' "$full"
   fi
@@ -71,6 +82,11 @@ install_homebrew() {
 
 install_brew_packages() {
   install_homebrew || return 0
+
+  if [ "$OS" = macos ] && [ "$ARCH" = x86_64 ]; then
+    warn "Homebrew dropped macOS Intel support in September 2026; packages"
+    warn "without a bottle are built from source, which is slow"
+  fi
 
   # `brew bundle` is idempotent on its own: it installs what is missing and
   # leaves the rest alone. --no-upgrade keeps re-runs from churning through

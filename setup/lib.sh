@@ -45,6 +45,15 @@ detect_os() {
   esac
 }
 
+# Print the CPU architecture, normalised: arm64 or x86_64.
+detect_arch() {
+  case "$(uname -m)" in
+    arm64|aarch64) printf 'arm64' ;;
+    x86_64|amd64)  printf 'x86_64' ;;
+    *)             uname -m ;;
+  esac
+}
+
 # Run a command as root, via sudo when we are not already root.
 as_root() {
   if [ "$(id -u)" -eq 0 ]; then

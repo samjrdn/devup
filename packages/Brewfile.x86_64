@@ -1,0 +1,14 @@
+# Extra macOS packages for Intel Macs only.
+#
+# Homebrew dropped support for macOS on Intel in September 2026: there are no
+# x86_64 bottles any more, so every formula here is compiled from source. Add
+# things only when the build time is worth it.
+#
+# Deliberately absent, and available in Brewfile.arm64 instead:
+#
+#   curl   macOS ships its own at /usr/bin/curl
+#   wget   pulls in openssl@3, which is a long build on this platform
+#
+# If you want them anyway:
+#
+#   brew "wget"
